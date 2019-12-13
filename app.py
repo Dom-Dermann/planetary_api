@@ -61,6 +61,7 @@ def db_seed():
 
 
 # defining API routes
+## proving a point
 @app.route('/')
 def hello_world():
     return "Hello World!"
@@ -94,6 +95,7 @@ def varibales(name: str, age: int):
         return jsonify(message=f"welcome, {name}.")
 
 
+# actual application endpoints
 @app.route('/plantes', methods=['GET'])
 def planets():
     planets_list = Planet.query.all()
@@ -150,6 +152,62 @@ def login():
         return jsonify(message="you logged in successfully", jwt=jwt)
     else:
         return jsonify(message="permission denied"), 403
-    
+
+
+## CRUD operations
+@app.route('/planet_details/<int:planet_id>', methods=["GET"])
+def planet_details(planet_id: int):
+    planet = Planet.query.filter_by(planet_id=planet_id).first()
+    if planet:
+        result = planet_schema.dump(planet)
+        return jsonify(result)
+    else: 
+        return jsonify(Message="that plant does not exist."), 404
+
+
+@app.route('/add_planet', methods=["POST"])
+@jwt_required
+def add_planet():
+    planet_name = request.json['planet_name']
+    test = Planet.query.filter_by(planet_name=planet_name).first()
+    if test:
+        return jsonify(Message="there is already a planet by that name."), 409
+    else:
+        planet_type = request.json['planet_type']
+        home_star = request.json['home_star']
+        mass = float(request.json['mass'])
+        radius = float(request.json['radius'])
+        distance = request.json['distance']
+
+        new_planet = Planet(planet_name=planet_name, planet_type=planet_type, home_star=home_star, mass=mass, radius=radius, distance=distance)
+        db.session.add(new_planet)
+        db.session.commit()
+        return jsonify(Message="you added a planet."), 201
+
+
+@app.route('/update_planet', methods=["PUT"])
+@jwt_required
+def update_planet():
+    planet_id = int(request.json['planet_id'])
+    planet = Planet.query.filter_by(planet_id=planet_id).first()
+    if planet: 
+        planet.planet_name = request.json['planet_name']
+        planet.planet_type = request.json['planet_type']
+        planet.home_star = request.json['home_start']
+        planet.mass = float(request.json['mass'])
+        planet.radius = float(request.json['radius'])
+        planet.distance = float(request.json['distance'])
+        db.session.commit()
+        return jsonify(Message="you updated a planet."), 202
+    else:
+        return jsonify(Message="that planet does not exist."), 404
+
+
+@app.route('/delete_planet', methods=["DELETE"])
+@jwt_required
+def delete_planet():
+    ## TODO
+    return None
+
 if __name__ == "__main__":
     app.run()
