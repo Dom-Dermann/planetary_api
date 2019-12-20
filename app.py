@@ -3,10 +3,13 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Float
 import os
 from db_tools.db_models import db, Planet, User
-from flask_marshmallow import Marshmallow
 import db_tools.pw_management as pw_management
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token
 from flask_mail import Mail, Message
+
+# Instantiate app
+app = Flask(__name__)
+
 from blueprints.register_user import register_user
 from blueprints.login import login_action
 from blueprints.crud import create_planet, read_planet, update_planet, delete_planet
@@ -28,22 +31,7 @@ app.config['JWT_SECRET_KEY'] = 'super-secret' # change this for production
 
 # Instanciations
 db.init_app(app)
-ma = Marshmallow(app)
 jwt = JWTManager(app)
-
-# database models
-class UserSchema(ma.Schema):
-    class Meta:
-        fields = ('id', 'first_name', 'last_name', 'email', 'password')
-
-class PlanetSchema(ma.Schema):
-    class Meta:
-        fields=('planet_id', 'planet_name', 'planet_type', 'home_star', 'mass', 'radius', 'distance')
-
-user_schema = UserSchema()
-users_schema = UserSchema(many=True)
-planet_schema = PlanetSchema()
-planets_schema = PlanetSchema(many=True)
 
 # flask commands for db testing
 @app.cli.command('db_create')

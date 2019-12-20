@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from db_tools.db_models import User
-from app import users_schema
+from db_tools.db_schemas import users_schema
 from flask_jwt_extended import create_access_token
 from db_tools.pw_management import verify_password
 

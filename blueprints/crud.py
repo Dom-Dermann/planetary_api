@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from db_tools.db_models import Planet, db
-from app import planet_schema
+from db_tools.db_schemas import planet_schema
+from flask_jwt_extended import jwt_required
 
 create_planet = Blueprint('create_planet', __name__)
 read_planet = Blueprint('read_planet', __name__)
@@ -35,9 +36,9 @@ def planet_details(planet_id: int):
     else: 
         return jsonify(Message="that plant does not exist."), 404
 
-@update_planet.router('/update_planet', methods=["PUT"])
+@update_planet.route('/update_planet', methods=["PUT"])
 @jwt_required
-def update_planet():
+def update():
     planet_id = int(request.json['planet_id'])
     planet = Planet.query.filter_by(planet_id=planet_id).first()
     if planet: 
@@ -54,7 +55,7 @@ def update_planet():
 
 @delete_planet.route('/delete_planet/<int:planet_id>', methods=["DELETE"])
 @jwt_required
-def delete_planet(planet_id: int):
+def delete(planet_id: int):
     planet = Planet.query.filter_by(planet_id=planet_id).first()
     if planet:
         db.session.delete(planet)
