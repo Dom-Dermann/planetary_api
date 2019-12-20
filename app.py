@@ -4,12 +4,15 @@ from sqlalchemy import Column, Integer, String, Float
 import os
 from db_tools.db_models import db, Planet, User
 from flask_marshmallow import Marshmallow
-import pw_management
+import db_tools.pw_management as pw_management
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token
 from flask_mail import Mail, Message
+from blueprints.register_user import register_user
 
 # Instantiate app
 app = Flask(__name__)
+# register blueprints
+app.register_blueprint(register_user)
 # set up SQLAlchemy db
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'planets.db')
@@ -68,58 +71,6 @@ def planets():
     planets_list = Planet.query.all()
     result = planets_schema.dump(planets_list)
     return jsonify(data=result)
-
-
-@app.route('/register', methods=['POST'])
-def register():
-    #test if user email already exists
-    if request.is_json:
-        email = request.json['email']
-    else:
-        email = request.form['email']
-    email = email.strip()
-    test = User.query.filter_by(email=email).first()
-
-    if test: 
-        return jsonify(message="That email already exists"), 409
-    else:
-        # handle both html forms and json requests
-        if request.is_json:
-            first_name = request.json['first_name']
-            last_name = request.json['last_name']
-            password = request.json['password']
-        else:
-            first_name = request.form['first_name']
-            last_name = request.form['last_name']
-            password = request.form['password']
-        password = pw_management.hash_password(password)
-        user = User(first_name=first_name, last_name=last_name, password=password, email=email)
-        db.session.add(user)
-        db.session.commit()
-        return jsonify(message="User created successfully"), 201
-
-
-@app.route('/login', methods=['POST'])
-def login():
-    if request.is_json:
-        email = request.json['email']
-        password = request.json['password']
-    else:
-        email = request.form['email']
-        password = request.form['password']
-    
-    user = User.query.filter_by(email=email)
-    user = users_schema.dump(user)
-    user = user[0]
-    stored_pw = user['password']
-
-    verification = pw_management.verify_password(stored_password=stored_pw, provided_password=password)
-    if verification: 
-        jwt = create_access_token(identity=email)
-        return jsonify(message="you logged in successfully", jwt=jwt)
-    else:
-        return jsonify(message="permission denied"), 403
-
 
 ## CRUD operations
 @app.route('/planet_details/<int:planet_id>', methods=["GET"])
