@@ -8,8 +8,8 @@ import db_tools.pw_management as pw_management
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token
 from flask_mail import Mail, Message
 from blueprints.register_user import register_user
-from blueprints.login  import login_action
-from blueprints.crud  import create_planet, read_planet, update_planet, delete_planet
+from blueprints.login import login_action
+from blueprints.crud import create_planet, read_planet, update_planet, delete_planet
 
 # Instantiate app
 app = Flask(__name__)
