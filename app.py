@@ -61,41 +61,8 @@ def db_seed():
 
 
 # defining API routes
-## proving a point
-@app.route('/')
-def hello_world():
-    return "Hello World!"
-
-
-@app.route('/super_simple')
-def super_simple():
-    return jsonify(message="Hello from the planetary API.", number=211)
-
-
-@app.route('/not_found')
-def not_found():
-    return jsonify(message="that resource was not found."), 404
-
-
-@app.route('/parameters')
-def parameters():
-        name = request.args.get('name')
-        age = int(request.args.get('age'))
-        if age < 18:
-            return jsonify(message = f'sorry {name}, you are not old enough.'), 401
-        else: 
-            return jsonify(message=f"welcome, {name}.")
-
-
-@app.route('/varibales/<string:name>/<int:age>')
-def varibales(name: str, age: int):
-    if age < 18:
-        return jsonify(message = f'sorry {name}, you are not old enough.'), 401
-    else: 
-        return jsonify(message=f"welcome, {name}.")
-
-
 # actual application endpoints
+# user management
 @app.route('/plantes', methods=['GET'])
 def planets():
     planets_list = Planet.query.all()
@@ -203,11 +170,15 @@ def update_planet():
         return jsonify(Message="that planet does not exist."), 404
 
 
-@app.route('/delete_planet', methods=["DELETE"])
+@app.route('/delete_planet/<int:planet_id>', methods=["DELETE"])
 @jwt_required
-def delete_planet():
-    ## TODO
-    return None
+def delete_planet(planet_id: int):
+    planet = Planet.query.filter_by(planet_id=planet_id).first()
+    if planet:
+        db.session.delete(planet)
+        db.session.commit()
+        return jsonify(Message="You deleted a planet."), 202
+    return jsonify(Message="Planet not found."), 404
 
 if __name__ == "__main__":
     app.run()
